@@ -1,17 +1,7 @@
 
 library(shiny)
 library(reticulate)
-# Create a virtual environment selecting your desired python version
-#virtualenv_create(envname = "python_environment", python= '/usr/bin/python3')
-# Explicitly install python libraries that you want to use, e.g. pandas, numpy
-#virtualenv_install("python_environment", packages = c('pandas','numpy'), ignore_installed = TRUE)
-# Select the virtual environment
-#use_virtualenv("python_environment", required = TRUE)
-                   
-source_python("algoritmos.py")
-#source_python("C:/Users/jose-/Documents/Maestria/Algoritmos/plataforma_base/demo1/algoritmos.py")
-
-#tableOut, soluc = newtonSolverX(-5, "2x^5 - 3", 0.0001)
+source_python('algoritmos.py')
 
 shinyServer(function(input, output) {
     
@@ -126,12 +116,25 @@ shinyServer(function(input, output) {
         outs
     })
     
+    #Evento y evaluación de diferencias finitas centradas 2
+    diferFinitCalculatec2<-eventReactive(input$diferFinEval2, {
+        inputEcStr<-input$equation_CDi2[1]
+        valX<-input$valX_CDi2[1]
+        h<-input$valH_CDi2[1]
+        outs<-finite_centered_differences(inputEcStr, valX, h)
+        as.character(outs)
+    })    
     
+    #Evento y evaluación de diferencias finitas centradas 4
+    diferFinitCalculatec4<-eventReactive(input$diferFinEval4, {
+        inputEcStr<-input$equation_CDi4[1]
+        valX<-input$valX_CDi4[1]
+        h<-input$valH_CDi4[1]
+        outs<-finite_centered_differences_v2(inputEcStr, valX, h)
+        as.character(outs)
+    })    
     
-    
-    
-    
-    #Evento y evaluación de diferencias finitas
+    #Evento y evaluación de diferencias finitas progresivas
     diferFinitCalculate<-eventReactive(input$diferFinEval, {
         inputEcStr<-input$equation_FDi[1]
         valX<-input$valX_FDi[1]
@@ -151,9 +154,19 @@ shinyServer(function(input, output) {
         bisectionCalculate()
     }, digits = 5)
     
-    #Render Diferncias Finitas
+    #Render Diferncias Finitas progresivas
     output$difFinitOut<-renderText({
         diferFinitCalculate()
+    })
+    
+    #Render Diferncias Finitas centradas 2
+    output$difFinitOutc2<-renderText({
+        diferFinitCalculatec2()
+    })
+    
+    #Render Diferncias Finitas centradas 4
+    output$difFinitOutc4<-renderText({
+        diferFinitCalculatec4()
     })
     
     #Render GD QP ESS
@@ -185,7 +198,38 @@ shinyServer(function(input, output) {
              col="blue",
              xlim = c(-1,1),
              ylim = c(-2,2))
-    })
+    })    
+    
+    #Evento y comparasion de diferencias finitas 1D
+    diferFinitComp1D<-eventReactive(input$C_FD_1D, {
+        inputEcStr<-input$f_FS_1D[1]
+        valX<-input$x_FD_1D[1]
+        h<-input$h_FD_1D[1]
+        ch<-input$ch_FD_1D[1]
+        outs<-derivate_approx_comparisons(inputEcStr, valX, h, ch)
+        outs
+    })       
+    
+    #Evento y comparasion de diferencias finitas 2D
+    diferFinitComp2D<-eventReactive(input$C_FD_2D, {
+        inputEcStr<-input$f_FS_2D[1]
+        valX<-input$x_FD_2D[1]
+        valy<-input$y_FD_2D[1]
+        h<-input$h_FD_2D[1]
+        ch<-input$ch_FD_2D[1]
+        outs<-derivate_approx_comparisons_xy(inputEcStr, valX, valy, h, ch)
+        outs
+    })    
+    
+    #REnder Comparacion diferencias finitas 
+    output$Notes0_DC1<-renderTable({
+        diferFinitComp1D()
+    }, digits = 7)
+    
+    #REnder Comparacion diferencias finitas xy
+    output$Notes0_DC2<-renderTable({
+        diferFinitComp2D()
+    }, digits = 7)
     
     #REnder metodo de Newton para e^x+2*x
     output$Notes1_New<-renderTable({

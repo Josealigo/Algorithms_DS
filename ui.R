@@ -6,14 +6,20 @@ dashboardPage(
     dashboardHeader(title = "Algorithms on DS"),
     dashboardSidebar(
         sidebarMenu(
+            menuItem("Centered Finite Differences (2p)", tabName = "Derivative_1"),
+            menuItem("Centered Finite Differences (4p)", tabName = "Derivative_2"),
+            menuItem("Progressive Finite Differences (3p)", tabName = "Derivative_3"),
             menuItem("Newton", tabName = "Newton"),
             menuItem("Bisection", tabName = "Bisec"),
             menuItem("Gradient Descent on QP", tabName = "GD_QP"),
             menuItem("Rosenbrock's Function", tabName = "RosFun"),
-            menuItem("Progressive Finite Differences", tabName = "Derivative_3"),
+            menuItem("GD Variants (closed Solution)", tabName = "GD_1"),
+            menuItem("Rosenbrock's Function", tabName = "RosFun"),
+            menuItem("Notes 0_1", tabName = "Notes01"),
+            menuItem("Notes 0_2", tabName = "Notes02"),
             menuItem("Notes 1", tabName = "Notes1"),
             menuItem("Notes 2", tabName = "Notes2")
-            
+            # 
             
         )
     ),
@@ -37,6 +43,22 @@ dashboardPage(
                         textInput("MaxIter_Bis", "Max iterations")),
                     actionButton("bisSolver", "Bisection Solver"),
                     tableOutput("salidaBisec")),
+            
+            tabItem("Derivative_1",
+                    h1("Centered Finite Differences on two points"),
+                    box(textInput("equation_CDi2", "Equation"),
+                        textInput("valX_CDi2", "x"),
+                        textInput("valH_CDi2", "h")),
+                    actionButton("diferFinEval2", "Evaluate Derivative"),
+                    textOutput("difFinitOutc2")),
+            
+            tabItem("Derivative_2",
+                    h1("Centered Finite Differences on four points"),
+                    box(textInput("equation_CDi4", "Equation"),
+                        textInput("valX_CDi4", "x"),
+                        textInput("valH_CDi4", "h")),
+                    actionButton("diferFinEval4", "Evaluate Derivative"),
+                    textOutput("difFinitOutc4")),
             
             tabItem("Derivative_3",
                     h1("Progressive Finite Differences"),
@@ -68,6 +90,36 @@ dashboardPage(
                     box(textInput("Init_GD_RosFun", "X0","0,0")),
                     actionButton("GD_RosFun", "Gradient Descent"),
                     tableOutput("GD_RosFun_Output")),
+            
+            tabItem("GD_1",
+                    h1("Gradient Descent Closed Solution on Regression"),
+                    h3(''),
+                    actionButton("GD_1_Sol", "Get Solution"),
+                    tableOutput("GD_1_Sol_Output")),
+            
+            
+            tabItem("Notes01",
+                    h1("Finite Differences Comparisons"),
+                    box(h3('We are going to see the difference on derivatives estimations for the next function.')),
+                    box(textInput("f_FS_1D", "f(x)"),
+                        textInput("x_FD_1D", "x"),
+                        textInput("h_FD_1D", "h0",value = 1),
+                        h5('Final h is set to 0.00001'),
+                        textInput("ch_FD_1D", "Amount of h",value = 10)),
+                    actionButton("C_FD_1D", "Make comparison"),
+                    tableOutput("Notes0_DC1")),
+            
+            tabItem("Notes02",
+                    h1("Finite Differences Comparisons on 2 dimentions"), 
+                    box(h3('We are going to see the difference on derivatives estimations for the next function.')),
+                    box(textInput("f_FS_2D", "f(x,y)"),
+                        textInput("x_FD_2D", "x"),
+                        textInput("y_FD_2D", "y"),
+                        textInput("h_FD_2D", "h0",value = 1),
+                        h5('Final h is set to 0.00001'),
+                        textInput("ch_FD_2D", "Amount of h",value = 10)),
+                    actionButton("C_FD_2D", "Make comparison"),
+                    tableOutput("Notes0_DC2")),
             
             tabItem("Notes1",
                     h1("Newton versus Bisection"),

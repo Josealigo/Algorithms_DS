@@ -2,14 +2,16 @@ import pandas as pd
 import numpy as np
 import re
 import math
+import sympy
+
+e = np.e
+sin = math.sin
+cos = math.cos
+tan = math.tan
 
 #Evaluación REGREX
 def evaluate_Fx(str_equ, valX):
     x = float(valX)
-    e = np.e
-    sin = math.sin
-    cos = math.cos
-    tan = math.tan
     strOut = str_equ
     strOut = strOut.replace("^", "**")
     exp_chage = [a for a in re.findall(r"[0-9]x", strOut )]
@@ -24,6 +26,129 @@ def evaluate_Fx(str_equ, valX):
         strOut = strOut.replace(i,new_exp)
     out = eval(strOut)
     return out
+
+def evaluate_Fxy(str_equ, valX, valY):
+    x = float(valX)
+    y = float(valY)
+    e = np.e
+    sin = math.sin
+    cos = math.cos
+    tan = math.tan
+    strOut = str_equ
+    strOut = strOut.replace("^", "**")
+    exp_chage = [a for a in re.findall(r"[0-9]x", strOut )]
+    for i in exp_chage:
+        num = i.replace("x","") 
+        new_exp = num + '*x'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"[0-9]y", strOut )]
+    for i in exp_chage:
+        num = i.replace("y","") 
+        new_exp = num + '*y'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"xy", strOut )]
+    for i in exp_chage:
+        num = i.replace("y","") 
+        new_exp = num + '*y'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"yx", strOut )]
+    for i in exp_chage:
+        num = i.replace("x","") 
+        new_exp = num + '*x'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"[0-9]\(", strOut )]
+    for i in exp_chage:
+        num = i.replace("(","")
+        new_exp = num + '*('
+        strOut = strOut.replace(i,new_exp)
+    out = eval(strOut)
+    return out
+
+
+#print(evaluate_Fxy("2xy^3 - 3y^2 + xy + 1", 1, 1)) #expected value is 1
+
+
+
+
+def real_derivative_Fx(str_equ):
+
+    strOut = str_equ
+    strOut = strOut.replace("^", "**")
+    exp_chage = [a for a in re.findall(r"[0-9]x", strOut )]
+    for i in exp_chage:
+        num = i.replace("x","")
+        new_exp = num + '*x'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"[0-9]\(", strOut )]
+    for i in exp_chage:
+        num = i.replace("(","")
+        new_exp = num + '*('
+        strOut = strOut.replace(i,new_exp)
+    x = sympy.Symbol('x')
+    y = eval(strOut)
+    yprime = y.diff(x)
+    
+    return str(yprime)
+
+def real_derivative_Fxy(str_equ):
+
+    strOut = str_equ
+    strOut = strOut.replace("^", "**")
+    exp_chage = [a for a in re.findall(r"[0-9]x", strOut )]
+    for i in exp_chage:
+        num = i.replace("x","") 
+        new_exp = num + '*x'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"[0-9]y", strOut )]
+    for i in exp_chage:
+        num = i.replace("y","") 
+        new_exp = num + '*y'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"xy", strOut )]
+    for i in exp_chage:
+        num = i.replace("y","") 
+        new_exp = num + '*y'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"yx", strOut )]
+    for i in exp_chage:
+        num = i.replace("x","") 
+        new_exp = num + '*x'
+        strOut = strOut.replace(i,new_exp)
+    exp_chage = [a for a in re.findall(r"[0-9]\(", strOut )]
+    for i in exp_chage:
+        num = i.replace("(","")
+        new_exp = num + '*('
+        strOut = strOut.replace(i,new_exp)
+    x = sympy.Symbol('x')
+    y = sympy.Symbol('y')
+    fxy = eval(strOut)
+    dx_df = fxy.diff(x)
+    dy_df = fxy.diff(y)
+    
+    return str(dx_df), str(dy_df)
+
+#print(real_derivative_Fxy("2xy^3 - 3y^2 + xy + 1"))
+#Diferencias finitas centradas
+
+def finite_centered_differences(str_equ, x, h):
+    h = float(h)
+    positive_x = float(x) + h
+    negative_x = float(x) - h
+    out = (evaluate_Fx(str_equ,positive_x) - evaluate_Fx(str_equ,negative_x)) /(2*h)
+    return out
+
+def finite_centered_differences_xy(str_equ, x, y, h):
+    h = float(h)
+    positive_x = float(x) + h
+    negative_x = float(x) - h
+    out_x = (evaluate_Fxy(str_equ,positive_x, y) - evaluate_Fxy(str_equ,negative_x, y))/(2*h)
+
+    positive_y = float(y) + h 
+    negative_y = float(y) - h
+    out_y = (evaluate_Fxy(str_equ,x,positive_y) - evaluate_Fxy(str_equ, x,negative_y))/(2*h)
+
+    return np.array([out_x,out_y])
+
 
 #Deferencias finitas progresivas para derivadas 
 def evaluate_derivate_fx(str_equ, x, h):
@@ -43,6 +168,202 @@ def evaluate_derivate_fx(str_equ, x, h):
     out = -out/(2*h)
     #print(out)
     return out
+
+
+#Deferencias finitas progresivas para derivadas 
+def evaluate_derivate_fxy(str_equ, x, y,h):
+    h = float(h)
+    new_x = float(x)+float(h)
+    new_y = float(y) + float(h)
+
+    new_x_2h = float(x) + 2 * float(h)
+    new_y_2h = float(y) + 2 * float(h)
+
+    out_x = (-3 * evaluate_Fxy(str_equ,float(x), float(y)) + 4 * evaluate_Fxy(str_equ, new_x, float(y)) - evaluate_Fxy(str_equ, new_x_2h, float(y)))/(2*h)
+    out_y = (-3 * evaluate_Fxy(str_equ,float(x), float(y)) + 4 * evaluate_Fxy(str_equ, float(x), new_y) - evaluate_Fxy(str_equ, float(x), new_y_2h))/(2*h)
+
+    return np.array([out_x, out_y])
+
+
+
+# Diferencias finitas centradas v2
+def finite_centered_differences_v2(str_equ, x, h):
+    h = float(h)
+    positive_x = float(x) + h
+    negative_x = float(x) - h
+  
+    positive_x_2h = float(x) + 2*h
+    negative_x_2h = float(x) - 2*h
+   
+
+    out = (evaluate_Fx(str_equ, negative_x_2h) - 8 * evaluate_Fx(str_equ, negative_x) + 8 * evaluate_Fx(str_equ,positive_x) - evaluate_Fx(str_equ,positive_x_2h))/(12 * h)
+
+    return out
+
+
+# Diferencias finitas centradas v2
+def finite_centered_differences_v2_xy(str_equ, x, y, h):
+    h = float(h)
+    x = float(x)
+    y = float(y)
+    positive_x = float(x) + h
+    negative_x = float(x) - h
+    positive_y = float(y) + h
+    negative_y = float(y) - h
+    positive_x_2h = float(x) + 2*h
+    negative_x_2h = float(x) - 2*h
+    positive_y_2h = float(y) + 2*h
+    negative_y_2h = float(y) - 2*h
+
+    out_x = (evaluate_Fxy(str_equ,negative_x_2h,y) - 8 * evaluate_Fxy(str_equ,negative_x,y) + 8 * evaluate_Fxy(str_equ,positive_x,y) - evaluate_Fxy(str_equ,positive_x_2h,y))/(12 * h)
+    out_y = (evaluate_Fxy(str_equ,x,negative_y_2h) - 8 * evaluate_Fxy(str_equ,x,negative_y) + 8 * evaluate_Fxy(str_equ,x,positive_y) - evaluate_Fxy(str_equ,x,positive_y_2h))/(12 * h)
+
+    return np.array([out_x,out_y])
+
+
+
+
+def derivate_approx_comparisons(str_equ, x, h_range, test_h_cases):
+    x = float(x)
+    h_range = float(h_range)
+    test_h_cases = int(test_h_cases)
+    algorithm_1_list = []
+    algorithm_2_list = []
+    algorithm_3_list = []
+
+    test_h = np.linspace(h_range, 0.00001,test_h_cases)
+
+    for h_i in test_h:
+        algorithm_1_list.append(np.round(finite_centered_differences(str_equ, x, h_i),6))
+        algorithm_2_list.append(np.round(evaluate_derivate_fx(str_equ, x, h_i),6))
+        algorithm_3_list.append(np.round(finite_centered_differences_v2(str_equ, x, h_i),6))
+
+    parsed_real_derivative = real_derivative_Fx(str_equ)
+
+    real_derivative = np.round(eval(parsed_real_derivative),6)
+
+    real_derivative_list = [real_derivative for i in range(0,len(algorithm_1_list))]
+
+    Table_1 = pd.DataFrame({'h': test_h, 'diff_finit_centradas': algorithm_1_list,'derivada real':real_derivative_list})
+    Table_2 = pd.DataFrame({'h': test_h, 'diff_finit_progresivas': algorithm_2_list, 'derivada real':real_derivative_list})
+    Table_3 = pd.DataFrame({'h': test_h, 'diff_finit_centradas_v2': algorithm_3_list,'derivada real':real_derivative_list})
+
+    Table_1['error'] = np.abs(Table_1['derivada real'] - Table_1['diff_finit_centradas']) 
+
+    Table_2['error'] = np.abs(Table_2['derivada real'] - Table_2['diff_finit_progresivas'])
+
+    Table_3['error'] = np.abs(Table_3['derivada real'] - Table_3['diff_finit_centradas_v2']) 
+    
+    Tabla_4 = pd.DataFrame({'h': test_h,'Real derivative':real_derivative_list, 'Centered finite differences 2p': algorithm_1_list,'Error 1':Table_1['error'] ,
+                            'Progressive finite differences 3p': algorithm_2_list,'Error 2':Table_2['error'],
+                            'Centered finite differences 4p': algorithm_3_list,'Error 3':Table_3['error']})
+
+    #return [Table_1,Table_2, Table_3]
+    return Tabla_4
+
+def derivate_approx_comparisons_xy(str_equ, x, y, h_range, test_h_cases):
+    x = float(x)
+    y = float(y)
+    h_range = float(h_range)
+    test_h_cases = int(test_h_cases)
+    algorithm_1_list = []
+    algorithm_2_list = []
+    algorithm_3_list = []
+
+    test_h = np.linspace(h_range, 0.00001,test_h_cases)
+
+    for h_i in test_h:
+        algorithm_1_list.append(np.round(finite_centered_differences_xy(str_equ, x, y,h_i),6))
+        algorithm_2_list.append(np.round(evaluate_derivate_fxy(str_equ, x, y, h_i),6))
+        algorithm_3_list.append(np.round(finite_centered_differences_v2_xy(str_equ, x, y,h_i),6))
+
+    parsed_real_derivative_x, parsed_real_derivative_y = real_derivative_Fxy(str_equ)
+
+    algorithm_1_list_str = []
+    for item in algorithm_1_list:
+        item_str = '['
+        cnt = 0
+        for item_i in item:
+            if cnt ==0:
+                item_str += str(item_i) 
+            else:
+                item_str += ','+str(item_i) 
+            cnt += 1
+        item_str += ']' 
+        algorithm_1_list_str.append(item_str)
+        
+    algorithm_2_list_str = []
+    for item in algorithm_2_list:
+        item_str = '['
+        cnt = 0
+        for item_i in item:
+            if cnt ==0:
+                item_str += str(item_i) 
+            else:
+                item_str += ','+str(item_i) 
+            cnt += 1
+        item_str += ']' 
+        algorithm_2_list_str.append(item_str)
+        
+    algorithm_3_list_str = []
+    for item in algorithm_3_list:
+        item_str = '['
+        cnt = 0
+        for item_i in item:
+            if cnt ==0:
+                item_str += str(item_i) 
+            else:
+                item_str += ','+str(item_i) 
+            cnt += 1
+        item_str += ']' 
+        algorithm_3_list_str.append(item_str)
+
+        
+        
+
+    real_derivative_x = np.round(eval(parsed_real_derivative_x),6)
+    real_derivative_y = np.round(eval(parsed_real_derivative_y),6)
+    real_derivative_list = [np.array([real_derivative_x, real_derivative_y]) for i in range(len(algorithm_1_list))]
+
+    real_derivative_list_str = []
+    for item in real_derivative_list:
+        item_str = '['
+        cnt = 0
+        for item_i in item:
+            if cnt ==0:
+                item_str += str(item_i) 
+            else:
+                item_str += ','+str(item_i) 
+            cnt += 1
+        item_str += ']' 
+        real_derivative_list_str.append(item_str)
+        
+    error_1 = np.array(algorithm_1_list) - np.array(real_derivative_list)
+    error_1 = np.linalg.norm(error_1, axis = 1)
+    error_2 = np.array(algorithm_2_list) - np.array(real_derivative_list)
+    error_2 = np.linalg.norm(error_2, axis = 1)
+    error_3 = np.array(algorithm_3_list) - np.array(real_derivative_list)
+    error_3 = np.linalg.norm(error_3, axis = 1)
+
+    Table_1 = pd.DataFrame({'h': test_h, 'Centered finite differences 2p': algorithm_1_list_str,'Real derivative':real_derivative_list_str, 'error': error_1})
+    Table_2 = pd.DataFrame({'h': test_h, 'Progressive finite differences 3p': algorithm_2_list_str, 'Real derivative':real_derivative_list_str, 'error': error_2})
+    Table_3 = pd.DataFrame({'h': test_h, 'Centered finite differences 4p': algorithm_3_list_str,'Real derivative':real_derivative_list_str, 'error':error_3})
+
+    Tabla_4 = pd.DataFrame({'h': test_h,'Real derivative':real_derivative_list_str, 'Centered finite differences 2p': algorithm_1_list_str,
+                            'Error 1': error_1,'Progressive finite differences 3p': algorithm_2_list_str, 'Error 2': error_2,
+                            'Centered finite differences 4p': algorithm_3_list_str,'Error 3':error_3})
+                
+                            
+    #print(Table_1)
+    #print(Table_2)
+    #print(Table_3)
+
+    #return [Table_1,Table_2, Table_3]
+    return Tabla_4
+
+#derivate_approx_comparisons_xy("2x^3y^3 - 3y^2 + 3x^2 + xy + 1", 0.1, 1, 5, 25)
+
+
 
 #Resolverdor de Newton
 def newtonSolverX(x0, f_x, eps,K_max):
@@ -378,3 +699,77 @@ def GD_RosFun(x0 = '0,0'):
     print("Finalizo...")
     TableOut = pd.DataFrame({'Iter':arrayIters, 'Xk':arrayXk,'Dir':arrayDir, 'Error': arrayErr})
     return TableOut  
+    
+    
+    
+def generateDataset():
+    d  = 100 # cantidad de columnas para el dataset
+    n = 1000
+    np.random.seed(42) 
+    A = np.random.normal(0,1,size = (n,d))
+    x_true = np.random.normal(0,1, size = (d,1))
+    b = A.dot(x_true) + np.random.normal(0,0.5, size = (n,1))
+
+    return A,b
+
+def closed_solution_linear_regression():
+
+    A, b = generateDataset()
+    total_examples = A.shape[0]
+    
+    optimal_x = np.linalg.inv(np.matmul(A.T, A)) @ np.matmul(A.T, b)
+
+    predictions = A.dot(optimal_x) 
+
+    error = np.sum((predictions - b)**2)
+
+    return optimal_x, error 
+
+
+#print(closed_solution_linear_regression())
+
+def gradient_descent(epochs):
+
+    A, b = generateDataset()
+    #print(A.shape)
+
+    total_examples = A.shape[0]
+
+    x = np.zeros(shape = (A.shape[1],1))
+
+    #print(x)
+
+    predictions = A.dot(x)
+    error = np.sum((predictions - b)**2)
+
+    #print(error)
+
+    dx_df = np.dot(A.T, (predictions - b)) / total_examples
+
+    #print(dx_df)
+
+    all_errors = []
+
+    step_sizes_to_test = [0.00005, 0.0005, 0.0007]
+
+    for step_size in step_sizes_to_test:
+        #print(step_size)
+        x = np.zeros(shape = (A.shape[1],1))
+        error_list = []
+
+        for step in range(0,epochs):
+            x = x - (step_size * dx_df)
+
+            predictions = A.dot(x)
+            error = np.sum((predictions - b)**2)
+
+            dx_df = np.dot(A.T, 2*(predictions - b))
+
+            error_list.append(error)
+
+        all_errors.append(np.array(error_list))
+
+    return all_errors
+        
+
+#print(gradient_descent(20))
