@@ -5,9 +5,9 @@ account: josealigo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2846634
-bundleId: 3648121
+bundleId: 3649627
 url: https://josealigo.shinyapps.io/Algorithms_DS/
-when: 1600579060.12203
+when: 1600631455.4647
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: .RData

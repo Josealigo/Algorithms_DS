@@ -645,6 +645,18 @@ def gradf_RosFun(xk):
     c1 = 400 * x1**3 - 400 * x1 * x2 + 2 * x1 -2 
     c2 = 200 * x2 - 200 * x1**2
     return(np.array([c1,c2]))
+    
+def Hesf_RosFun_Inv(xk):
+    x1 = xk[0]
+    x2 = xk[1]
+    c1 = 1200 * x1**2 - 400 * x2 + 2  
+    c2 = - 400 * x1
+    c3 = - 400 * x1 
+    c4 = 200
+    Hes = np.array([c1,c2,c3,c4])
+    Hes = Hes.reshape((2,2))
+    Hes_inv = np.linalg.inv(Hes)
+    return(Hes_inv)
 
 def GD_RosFun(x0 = '0,0'):  
     vect_piv = x0.split(',')
@@ -722,6 +734,9 @@ def closed_solution_linear_regression():
     predictions = A.dot(optimal_x) 
 
     error = np.sum((predictions - b)**2)
+    
+    optimal_x = pd.DataFrame({'Optimal x':list(optimal_x)})
+    error = pd.DataFrame({'F(x)':[error]})
 
     return optimal_x, error 
 
@@ -729,6 +744,8 @@ def closed_solution_linear_regression():
 #print(closed_solution_linear_regression())
 
 def gradient_descent(epochs):
+    
+    epochs = int(epochs)
 
     A, b = generateDataset()
     #print(A.shape)
@@ -768,8 +785,108 @@ def gradient_descent(epochs):
             error_list.append(error)
 
         all_errors.append(np.array(error_list))
+    
+    all_errors = pd.DataFrame({'0.00005':all_errors[0],'0.0005':all_errors[1],'0.0007':all_errors[2]})
 
     return all_errors
-        
 
-#print(gradient_descent(20))
+def gradient_descent_v2(epochs,step_size):
+
+    epochs = int(epochs)
+    A, b = generateDataset()
+    #print(A.shape)
+
+    total_examples = A.shape[0]
+
+    x = np.zeros(shape = (A.shape[1],1))
+
+    #print(x)
+
+    predictions = A.dot(x)
+    error = np.sum((predictions - b)**2)
+
+    #print(error)
+
+    dx_df = np.dot(A.T, (predictions - b)) / total_examples
+
+    #print(dx_df)
+
+    all_errors = []
+
+    step_size = float(step_size)
+    x = np.zeros(shape = (A.shape[1],1))
+    error_list = []
+
+    for step in range(0,epochs):
+        x = x - (step_size * dx_df)
+
+        predictions = A.dot(x)
+        error = np.sum((predictions - b)**2)
+
+        dx_df = np.dot(A.T, 2*(predictions - b))
+
+        error_list.append(error)
+
+    all_errors.append(np.array(error_list))
+    
+    all_errors = pd.DataFrame({step_size:all_errors[0]})
+
+    return all_errors
+    
+
+def NS_RosFun(x0, y0):  
+    vect_piv = x0.split(',')
+    vec_x0 = np.array([x0,y0],dtype=np.float32) 
+    #print(vec_x0)
+    K_max = 1000
+    eps = 0.00000001
+    css = 1
+    xk = vec_x0
+    error = 1
+    arrayIters = []
+    arrayDir = []
+    arrayXk = []
+    arrayErr = []
+    
+    k = 0
+    while(error > eps and k<K_max):
+        print("...")
+        step_k = css 
+        dir_k = np.matmul(Hesf_RosFun_Inv(xk),gradf_RosFun(xk))  
+        x_k1 = xk- step_k * dir_k
+        dir_k1 = np.matmul(Hesf_RosFun_Inv(x_k1),gradf_RosFun(x_k1))  
+        error = np.linalg.norm(dir_k1)
+        k = k + 1
+        x_k1_str = '['
+        cnt = 0
+        for i in x_k1:
+            if cnt ==0:
+                x_k1_str += str(i) 
+            else:
+                x_k1_str += ','+str(i) 
+            cnt += 1
+        x_k1_str += ']'
+        dir_k1_str = '['
+        cnt = 0
+        for i in dir_k1:
+            if cnt ==0:
+                dir_k1_str += str(i) 
+            else:
+                dir_k1_str += ','+str(i) 
+            cnt += 1
+        dir_k1_str += ']'
+        arrayIters.append(k)
+        arrayXk.append(x_k1_str)
+        #arrayXk.append(x_k1)
+        arrayErr.append(error)
+        arrayDir.append(dir_k1_str)
+        #arrayDir.append(dir_k1)
+        xk = x_k1
+        solution = [i, xk, error]
+  
+    print("Finalizo...")
+    TableOut = pd.DataFrame({'Iter':arrayIters, 'Xk':arrayXk,'Dir':arrayDir, 'Error': arrayErr})
+    return TableOut  
+    
+
+#aaprint(gradient_descent(20))
