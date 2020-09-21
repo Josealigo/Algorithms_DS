@@ -3,6 +3,7 @@ import numpy as np
 import re
 import math
 import sympy
+#import matplotlib.pyplot as plt
 
 e = np.e
 sin = math.sin
@@ -888,5 +889,98 @@ def NS_RosFun(x0, y0):
     TableOut = pd.DataFrame({'Iter':arrayIters, 'Xk':arrayXk,'Dir':arrayDir, 'Error': arrayErr})
     return TableOut  
     
+def stochastic_gradient_descent():
+
+    A, b = generateDataset()
+    x = np.zeros(shape = (A.shape[1],1))
+
+    total_examples = A.shape[0]
+
+
+    prediction = np.dot(A[0,:],x) 
+    error = (prediction - b[0])**2
+    dx_df = 2* (prediction - b[0]) * A[0,:]
+
+    all_errors = []
+    step_sizes_to_test = [0.0005, 0.005, 0.01]
+
+    for step_size in step_sizes_to_test:
+            
+        x = np.zeros(shape = (A.shape[1],1))
+        error_list = []
+
+        for step in range(1,A.shape[0]):
+            x = (x[0] - (step_size * dx_df)).reshape(-1,1)
+            prediction = np.dot(A[step,:],x)
+            error = (prediction - b[step])**2
+            dx_df = 2* (prediction - b[step]) * A[step,:]
+
+            error_list.append(error)
+
+    
+        all_errors.append(np.array(error_list))
+
+    all_errors = pd.DataFrame({'0.0005':[item[0] for item in list(all_errors[0])] ,
+                                          '0.005':[item[0] for item in list(all_errors[1])],
+                                          '0.01':[item[0] for item in list(all_errors[2])] } )
+
+    return all_errors
+
+def MB_gradient_descent(iterations):
+    iterations = int(iterations)
+
+    A, b = generateDataset()
+
+    total_examples = A.shape[0]
+
+    all_errors= []
+    step_sizes_to_test = [0.0005, 0.005, 0.01]
+    batch_sizes_to_test = [25,50,100]
+
+    for batch_size in batch_sizes_to_test:
+        x = np.zeros(shape = (A.shape[1],1))
+        prediction = np.dot(A[0:batch_size,:],x) 
+        error = np.sum((prediction - b[0:batch_size])**2)
+        dx_df = np.dot(A[0:batch_size,:].T,2*(prediction - b[0:batch_size]))
+        batch_errors = []
+
+        for step_size in step_sizes_to_test:
+            
+            x = np.zeros(shape = (A.shape[1],1))
+            error_list = []
+
+            for epoch in range(0,iterations):
+                for step in range(batch_size,A.shape[0],batch_size):
+                    
+                    x = x - (step_size * dx_df)
+                    prediction = np.dot(A[step:step+batch_size,:],x)
+                    error = np.sum((prediction - b[step:step+batch_size])**2)
+                    dx_df = np.dot(A[step:step+batch_size,:].T,2*(prediction - b[step:step+batch_size]))
+                    error_list.append(error)
+
+            batch_errors.append(np.array(error_list))
+
+        all_errors.append(batch_errors)
+
+
+    length_array = np.max(np.array([len(all_errors[0][0]),len(all_errors[1][0]),len(all_errors[2][0])]))
+    
+    faltante_0 = -1 + np.zeros(length_array - len(all_errors[0][0]))
+    faltante_1 = -1 + np.zeros(length_array - len(all_errors[1][0]))
+    faltante_2 = -1 + np.zeros(length_array - len(all_errors[2][0]))
+    
+    
+    all_errors = pd.DataFrame({'25_0.00005':np.append(faltante_0,all_errors[0][0]),
+                               '25_0.0005':np.append(faltante_0,all_errors[0][1]),
+                               '25_0.0007':np.append(faltante_0,all_errors[0][2]),
+                               '50_0.00005':np.append(faltante_1,all_errors[1][0]),
+                               '50_0.0005':np.append(faltante_1,all_errors[1][1]),
+                               '50_0.0007':np.append(faltante_1,all_errors[1][2]),
+                               '100_0.00005':np.append(faltante_2,all_errors[2][0]),
+                               '100_0.0005':np.append(faltante_2,all_errors[2][1]),
+                               '100_0.0007':np.append(faltante_2,all_errors[2][2])} )    
+
+    return all_errors
+
 
 #aaprint(gradient_descent(20))

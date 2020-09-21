@@ -166,6 +166,42 @@ shinyServer(function(input, output) {
         outs
     })
     
+    #Evento y evaluación de regresion lineal con SGD
+    GD_3_Sol_Calculate<-eventReactive(input$GD_3_Sol, {
+        outs<-stochastic_gradient_descent()
+        #print(dim(outs))
+        outs
+    })
+    
+    #Evento y evaluación de regresion lineal con MBGD
+    GD_4_Sol_Calculate<-eventReactive(input$GD_4_Sol, {
+        outs<-MB_gradient_descent(20)
+        #print(dim(outs))
+        outs
+    })
+    
+    #Evento y comparasion de diferencias finitas 1D
+    diferFinitComp1D<-eventReactive(input$C_FD_1D, {
+        inputEcStr<-input$f_FS_1D[1]
+        valX<-input$x_FD_1D[1]
+        h<-input$h_FD_1D[1]
+        ch<-input$ch_FD_1D[1]
+        outs<-derivate_approx_comparisons(inputEcStr, valX, h, ch)
+        outs
+    })       
+    
+    #Evento y comparasion de diferencias finitas 2D
+    diferFinitComp2D<-eventReactive(input$C_FD_2D, {
+        inputEcStr<-input$f_FS_2D[1]
+        valX<-input$x_FD_2D[1]
+        valy<-input$y_FD_2D[1]
+        h<-input$h_FD_2D[1]
+        ch<-input$ch_FD_2D[1]
+        outs<-derivate_approx_comparisons_xy(inputEcStr, valX, valy, h, ch)
+        outs
+    })    
+    
+    
     
     
     
@@ -251,43 +287,82 @@ shinyServer(function(input, output) {
              ylim = c(-2,2))
     })    
     
-    # Render plor para la grafica uno de regresion lineal GD_2  gradient_descent
+    # Render plot para la grafica uno de regresion lineal GD_2  gradient_descent
     output$plot1_GD2 <- renderPlot({
         Tabla = gradient_descent(20)
-        Tabla[,1]
-        plot(Tabla[,1], ylab = "f(x)",xlab = "Iter",col = "Blue", main = " F(x) per iteration",pch = 19,ylim = c(0,200000))
+        plot(Tabla[,1], ylab = "Error",xlab = "Iter",col = "Blue", main = " Effect of step size in Gradient Descent",pch = 19,ylim = c(0,200000))
         points(Tabla[,2], col= "Green",pch = 19)
         points(Tabla[,3], col = "Red",pch = 19)
         legend("topright",col = c("Blue","Green", "Red"), legend = c("0.00005","0.0005","0.0007"), pch = 19 )
     })   
     
+    # Render plot para la grafica uno de regresion lineal GD_2  gradient_descent
     output$plot2_GD2 <- renderPlot({
         Data1 = GD_2_Sol_Calculate()
         ss = colnames(Data1)[1]
-        plot(Data1[,1], ylab = "f(x)",xlab = "Iter",col = "Blue", main = " F(x) per iteration",pch = 19,ylim = c(0,200000))
+        plot(Data1[,1], ylab = "Error",xlab = "Iter",col = "Blue", main = " Effect of step size in  Gradient Descent",pch = 19,ylim = c(0,200000))
         legend("topright",col = c("Blue"), legend = c(ss), pch = 19 )
     })   
     
-    #Evento y comparasion de diferencias finitas 1D
-    diferFinitComp1D<-eventReactive(input$C_FD_1D, {
-        inputEcStr<-input$f_FS_1D[1]
-        valX<-input$x_FD_1D[1]
-        h<-input$h_FD_1D[1]
-        ch<-input$ch_FD_1D[1]
-        outs<-derivate_approx_comparisons(inputEcStr, valX, h, ch)
-        outs
-    })       
+    # Render plot para la grafica uno de regresion lineal GD_3  gradient_descent
+    output$plot1_GD3 <- renderPlot({
+        Tabla = GD_3_Sol_Calculate()
+        #print(dim(Tabla))
+        #print(Tabla[1:10,1])
+        plot(Tabla[,1], ylab = "Error",xlab = "Iter",col = "Blue", main = " Effect of step size in Stochastic Gradient Descent",pch = 1,ylim = c(0,2000))
+        #print('Llegamos a 1')
+        points(Tabla[,2], col= "Green",pch = 2)
+        #print('Llegamos a 2')
+        points(Tabla[,3], col = "Red",pch = 3)
+        #print('Llegamos a 3')
+        legend("topright",col = c("Blue","Green", "Red"), legend = c("0.0005","0.005","0.01"), pch = 19 )
+        #print('Llegamos a 4')
+    })   
     
-    #Evento y comparasion de diferencias finitas 2D
-    diferFinitComp2D<-eventReactive(input$C_FD_2D, {
-        inputEcStr<-input$f_FS_2D[1]
-        valX<-input$x_FD_2D[1]
-        valy<-input$y_FD_2D[1]
-        h<-input$h_FD_2D[1]
-        ch<-input$ch_FD_2D[1]
-        outs<-derivate_approx_comparisons_xy(inputEcStr, valX, valy, h, ch)
-        outs
-    })    
+    # Render plot para la grafica uno de regresion lineal GD_4  gradient_descent
+    output$plot1_GD4 <- renderPlot({
+        Tabla = GD_4_Sol_Calculate()
+        #print(dim(Tabla))
+        #print(Tabla[1:10,1])
+        plot(Tabla[which(Tabla[,1]>=0),1], ylab = "Error",xlab = "Iter",col = "Blue", main = " Effect of step size in MBGD (Batch size = 25)",pch = 1,ylim = c(0,2000))
+        #print('Llegamos a 1')
+        points(Tabla[which(Tabla[,1]>=0),2], col= "Green",pch = 2)
+        #print('Llegamos a 2')
+        points(Tabla[which(Tabla[,1]>=0),3], col = "Red",pch = 3)
+        #print('Llegamos a 3')
+        legend("topright",col = c("Blue","Green", "Red"), legend = c("0.0005","0.005","0.01"), pch = 19 )
+        #print('Llegamos a 4')
+    })   
+    
+    # Render plot para la grafica uno de regresion lineal GD_4  gradient_descent
+    output$plot2_GD4 <- renderPlot({
+        Tabla = GD_4_Sol_Calculate()
+        #print(dim(Tabla))
+        #print(Tabla[1:10,1])
+        plot(Tabla[which(Tabla[,4]>=0),4], ylab = "Error",xlab = "Iter",col = "Blue", main = " Effect of step size in MBGD (Batch size = 50)",pch = 1,ylim = c(0,5000))
+        #print('Llegamos a 1')
+        points(Tabla[which(Tabla[,4]>=0),5], col= "Green",pch = 2)
+        #print('Llegamos a 2')
+        points(Tabla[which(Tabla[,4]>=0),6], col = "Red",pch = 3)
+        #print('Llegamos a 3')
+        legend("topright",col = c("Blue","Green", "Red"), legend = c("0.0005","0.005","0.01"), pch = 19 )
+        #print('Llegamos a 4')
+    })  
+    
+    # Render plot para la grafica uno de regresion lineal GD_4  gradient_descent
+    output$plot3_GD4 <- renderPlot({
+        Tabla = GD_4_Sol_Calculate()
+        #print(dim(Tabla))
+        #print(Tabla[1:10,1])
+        plot(Tabla[which(Tabla[,7]>=0),7], ylab = "Error",xlab = "Iter",col = "Blue", main = " Effect of step size in MBGD (Batch size = 100)",pch = 1,ylim = c(0,20000))
+        #print('Llegamos a 1')
+        points(Tabla[which(Tabla[,7]>=0),8], col= "Green",pch = 2)
+        #print('Llegamos a 2')
+        points(Tabla[which(Tabla[,7]>=0),9], col = "Red",pch = 3)
+        #print('Llegamos a 3')
+        legend("topright",col = c("Blue","Green", "Red"), legend = c("0.0005","0.005","0.01"), pch = 19 )
+        #print('Llegamos a 4')
+    })  
     
     #REnder Comparacion diferencias finitas 
     output$Notes0_DC1<-renderTable({
