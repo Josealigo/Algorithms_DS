@@ -143,6 +143,30 @@ shinyServer(function(input, output) {
         as.character(outs)
     })
     
+    #Evento y evaluación de regresion lineal con solucion cerrada
+    GD_1_Sol_Calculate<-eventReactive(input$GD_1_Sol, {
+        outs<-closed_solution_linear_regression()
+        outs
+    })
+    
+    #Evento y evaluación de regresion lineal con GD
+    GD_2_Sol_Calculate<-eventReactive(input$GD_2_Sol, {
+        SS<-input$GD_2_SS[1]
+        outs<-gradient_descent_v2(20,SS)
+        outs
+    })
+    
+    #Evento y evaluación de Newton en 2D
+    newtonCalculate2D<-eventReactive(input$nwtSolver2D, {
+        #print(c('Estamos en Newton'))
+        initValx<-input$initValx_New2D[1]
+        initValy<-input$initValy_New2D[1]
+        outs<-NS_RosFun(initValx,initValy)
+        #print(outs)
+        outs
+    })
+    
+    
     
     #REnder metodo de Newton
     output$salidaNewt<-renderTable({
@@ -169,6 +193,13 @@ shinyServer(function(input, output) {
         diferFinitCalculatec4()
     })
     
+    #Render piv_text_GD2_1
+    output$piv_text_GD2_1<-renderTable({
+        Tabla = gradient_descent(20)
+        Tabla[10,3]
+        #'a'
+    })
+    
     #Render GD QP ESS
     output$GD_QP_ESS_Output<- renderTable({
         GD_QP_ESS_Calculate()
@@ -189,6 +220,25 @@ shinyServer(function(input, output) {
         GD_RosFun_Calculate()
     }, sdigits = 5)
     
+    
+    #REnder metodo de Newton
+    output$salidaNewt2D<-renderTable({
+        newtonCalculate2D()
+    }, digits = 5)
+    
+    #Render GD_1_Sol_Output
+    output$GD_1_Sol_Output<- renderTable({
+        Tabla = GD_1_Sol_Calculate()
+        Tabla[1]
+    }, sdigits = 5)
+    
+    #Render GD_1_Error_Output
+    output$GD_1_Error_Output<- renderTable({
+        Tabla = GD_1_Sol_Calculate()
+        Tabla[2]
+    }, sdigits = 5)
+    
+    # Render plot para mostrar la diferencia de Newton con Biseccion 
     output$plot1 <- renderPlot({
         plot(seq(-1,1,0.1), exp(seq(-1,1,0.1))+2*seq(-1,1,0.1),
              main="F(x) = e^x+2x",
@@ -199,6 +249,23 @@ shinyServer(function(input, output) {
              xlim = c(-1,1),
              ylim = c(-2,2))
     })    
+    
+    # Render plor para la grafica uno de regresion lineal GD_2  gradient_descent
+    output$plot1_GD2 <- renderPlot({
+        Tabla = gradient_descent(20)
+        Tabla[,1]
+        plot(Tabla[,1], ylab = "f(x)",xlab = "Iter",col = "Blue", main = " F(x) per iteration",pch = 19,ylim = c(0,200000))
+        points(Tabla[,2], col= "Green",pch = 19)
+        points(Tabla[,3], col = "Red",pch = 19)
+        legend("topright",col = c("Blue","Green", "Red"), legend = c("0.00005","0.0005","0.0007"), pch = 19 )
+    })   
+    
+    output$plot2_GD2 <- renderPlot({
+        Data1 = GD_2_Sol_Calculate()
+        ss = colnames(Data1)[1]
+        plot(Data1[,1], ylab = "f(x)",xlab = "Iter",col = "Blue", main = " F(x) per iteration",pch = 19,ylim = c(0,200000))
+        legend("topright",col = c("Blue"), legend = c(ss), pch = 19 )
+    })   
     
     #Evento y comparasion de diferencias finitas 1D
     diferFinitComp1D<-eventReactive(input$C_FD_1D, {
