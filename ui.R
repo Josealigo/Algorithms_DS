@@ -6,6 +6,7 @@ dashboardPage(
     dashboardHeader(title = "Algorithms on DS"),
     dashboardSidebar(
         sidebarMenu(
+            menuItem("Makers", tabName = "Makers"),
             menuItem("Centered Finite Differences (2p)", tabName = "Derivative_1"),
             menuItem("Centered Finite Differences (4p)", tabName = "Derivative_2"),
             menuItem("Progressive Finite Differences (3p)", tabName = "Derivative_3"),
@@ -28,6 +29,14 @@ dashboardPage(
     ),
     dashboardBody(
         tabItems(
+            tabItem("Makers",
+                    h1("Members"),
+                    box(column("Juan Pablo Carranza", status = "primary", 
+                               title = "1",  width = 6 , height = 120 ),
+                        column("Jose Alberto Ligorria", status = "primary", 
+                               title = "2",  width = 6 , height = 120 ))
+                    ),
+            
             tabItem("Newton",
                     h1("Newton's method"),
                     box(textInput("equation_New", "Equation"),

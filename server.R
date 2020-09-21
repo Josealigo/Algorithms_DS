@@ -168,6 +168,7 @@ shinyServer(function(input, output) {
     
     
     
+    
     #REnder metodo de Newton
     output$salidaNewt<-renderTable({
         newtonCalculate()
